@@ -1,0 +1,21 @@
+{
+  "name": "biblioteca-api-express",
+  "version": "1.0.0",
+  "description": "API REST de Biblioteca — refactor a routes/ y controllers/ (Clase 5)",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [
+    "express",
+    "rest-api",
+    "node"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

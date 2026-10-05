@@ -1,0 +1,76 @@
+### 1. POST /books — sin título ni autor: 400 con details
+POST http://localhost:3000/books
+Content-Type: application/json
+
+{
+  "author": ""
+}
+
+### 2. POST /books — stock negativo: 400, details sobre stock
+POST http://localhost:3000/books
+Content-Type: application/json
+
+{
+  "title": "X",
+  "author": "Y",
+  "stock": -3
+}
+
+### 3. POST /books — stock del tipo equivocado: 400
+POST http://localhost:3000/books
+Content-Type: application/json
+
+{
+  "title": "X",
+  "author": "Y",
+  "stock": "cinco"
+}
+
+### 4. POST /books — válido sin stock: 201 y stock = 0 (default de Zod)
+POST http://localhost:3000/books
+Content-Type: application/json
+
+{
+  "title": "Ficciones",
+  "author": "Jorge Luis Borges"
+}
+
+### 5. POST /books — ISBN mal formado: 400
+POST http://localhost:3000/books
+Content-Type: application/json
+
+{
+  "title": "El Aleph",
+  "author": "Jorge Luis Borges",
+  "isbn": "123"
+}
+
+### 6. POST /books — ISBN duplicado: 409 (lógica de negocio, no validación)
+POST http://localhost:3000/books
+Content-Type: application/json
+
+{
+  "title": "Duplicado",
+  "author": "Test",
+  "isbn": "9780393312838"
+}
+
+### 7. GET /books/999 — 404 armado por el errorHandler
+GET http://localhost:3000/books/999
+
+### 8. PUT /books/1 — update parcial: solo stock (200)
+PUT http://localhost:3000/books/1
+Content-Type: application/json
+
+{
+  "stock": 5
+}
+
+### 9. GET /books — listar
+GET http://localhost:3000/books
+
+### 10. GET /books?page=1&limit=2 — paginado
+GET http://localhost:3000/books?page=1&limit=2
+
+### 11. GET /cualquier-cosa — notFound → errorHandler (404)
+GET http://localhost:3000/cualquier-cosa

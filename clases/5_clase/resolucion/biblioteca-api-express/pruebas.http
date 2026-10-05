@@ -1,0 +1,57 @@
+### 1. GET /libros -> listar todos
+GET http://localhost:3000/libros
+
+### 2. GET /libros?autor=Orwell -> filtro por autor (clase 4, sigue andando)
+GET http://localhost:3000/libros?autor=Orwell
+
+### 3. GET /libros?page=1&limit=2 -> paginado: solo 2 resultados
+GET http://localhost:3000/libros?page=1&limit=2
+
+### 4. GET /libros?sort=-stock -> orden descendente por stock
+GET http://localhost:3000/libros?sort=-stock
+
+### 5. GET /libros?sort=titulo -> orden ascendente por título
+GET http://localhost:3000/libros?sort=titulo
+
+### 6. GET /libros/1 -> existe (200)
+GET http://localhost:3000/libros/1
+
+### 7. GET /libros/999 -> no existe: formato de error estandarizado (404)
+GET http://localhost:3000/libros/999
+
+### 8. POST /libros -> crear válido (201)
+POST http://localhost:3000/libros
+Content-Type: application/json
+
+{
+  "isbn": "9788437604947",
+  "titulo": "Ficciones",
+  "autor": "Jorge Luis Borges",
+  "stock": 4
+}
+
+### 9. POST /libros -> sin título: error estandarizado (400)
+POST http://localhost:3000/libros
+Content-Type: application/json
+
+{
+  "autor": "Autor Anónimo"
+}
+
+### 10. PUT /libros/1 -> actualizar (200)
+PUT http://localhost:3000/libros/1
+Content-Type: application/json
+
+{
+  "titulo": "Cien años de soledad (Edición Especial)",
+  "stock": 10
+}
+
+### 11. DELETE /libros/2 -> eliminar (200)
+DELETE http://localhost:3000/libros/2
+
+### 12. GET /cualquier-cosa -> notFound middleware: 404 estandarizado
+GET http://localhost:3000/cualquier-cosa
+
+### 13. GET /libros -> estado final
+GET http://localhost:3000/libros

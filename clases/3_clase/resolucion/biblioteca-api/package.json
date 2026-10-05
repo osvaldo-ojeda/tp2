@@ -1,0 +1,12 @@
+{
+  "name": "biblioteca-api",
+  "version": "1.0.0",
+  "description": "Biblioteca API - Persistencia JSON con fs/promises (Clase 3)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

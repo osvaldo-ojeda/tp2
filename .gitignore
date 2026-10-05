@@ -1,0 +1,7 @@
+# Ignorar todas las carpetas node_modules en cualquier subdirectorio
+node_modules/
+
+# Ignorar todos los archivos .env y variantes (conservando .env.example)
+.env
+.env.*
+!.env.example

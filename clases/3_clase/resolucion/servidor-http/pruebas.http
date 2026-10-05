@@ -1,0 +1,18 @@
+### 1. GET / -> Ruta principal
+GET http://localhost:3000/
+
+### 2. GET /libros -> Listar todos los libros desde JSON
+GET http://localhost:3000/libros
+
+### 3. POST /eco -> Desafío opcional (Lectura de body a mano)
+POST http://localhost:3000/eco
+Content-Type: application/json
+
+{
+  "titulo": "El Aleph",
+  "autor": "Jorge Luis Borges",
+  "prueba": "probando stream de datos req.on('data')"
+}
+
+### 4. GET /inexistente -> Prueba de error 404
+GET http://localhost:3000/ruta-inexistente

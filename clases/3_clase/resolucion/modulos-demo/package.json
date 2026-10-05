@@ -1,0 +1,13 @@
+{
+  "name": "modulos-demo",
+  "version": "1.0.0",
+  "description": "Demostración de ES Modules en Node.js (Clase 3)",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

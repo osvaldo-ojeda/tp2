@@ -1,0 +1,12 @@
+{
+  "name": "servidor-http",
+  "version": "1.0.0",
+  "description": "Servidor HTTP puro en Node.js (Clase 3)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
