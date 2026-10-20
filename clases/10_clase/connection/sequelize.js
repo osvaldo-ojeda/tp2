@@ -4,7 +4,7 @@ import { Sequelize } from "sequelize";
 // (Podría ser 'sqlite:./database.sqlite' para persistir en disco local)
 const sequelize = new Sequelize({
   dialect: "sqlite",
-  storage: ":memory:",
+  storage: "./database.sqlite",//:memory: para no guardar nada.
   logging: false, // Cambiar a console.log para ver las queries SQL
 });
 

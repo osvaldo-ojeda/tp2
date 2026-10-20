@@ -1,5 +1,4 @@
 import express from "express";
-
 import logger from "./middlewares/logger.js";
 import notFound from "./middlewares/notFound.js";
 import errorHandler from "./middlewares/errorHandler.js";

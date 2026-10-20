@@ -1,7 +1,10 @@
-import { getBooksDao } from "../dao/daoFactory.js";
+import { getBooksDao, getUsersDao } from "../dao/daoFactory.js";
 import makeBookUseCases from "../usecases/books/makeBookUseCases.js";
 import BooksController from "../controllers/BooksController.js";
 import createBooksRouter from "../routes/booksRoutes.js";
+import makeUserUseCases from "../usecases/users/makeUserUseCases.js";
+import UsersController from "../controllers/UsersController.js";
+import createUsersRouter from "../routes/usersRoutes.js";
 import { Router } from "express";
 
 /**
@@ -18,8 +21,13 @@ async function buildContainer() {
     await booksDao.init();
   }
 
+  const usersDao = getUsersDao();
+  if (typeof usersDao.init === "function") {
+    await usersDao.init();
+  }
+
   // 2. Inyectamos los DAOs en las Factories de Casos de Uso
-  const bookUseCases = makeBookUseCases(booksDao);
+  const bookUseCases = makeBookUseCases(booksDao, usersDao);
 
   // 3. Inyectamos los Casos de Uso en los Controladores
   const booksController = new BooksController(bookUseCases);
@@ -28,9 +36,9 @@ async function buildContainer() {
   const router = Router();
   router.use("/books", createBooksRouter(booksController));
 
-  // (Aquí se ensamblará la entidad Users en la consigna)
-  // const usersDao = getUsersDao();
-  // ...
+  // Entidad Users
+  const usersController = new UsersController(makeUserUseCases(usersDao));
+  router.use("/users", createUsersRouter(usersController));
 
   // Retornamos el router principal listo para ser usado por Express
   return router;

@@ -1,14 +1,14 @@
 ### 1. Obtener todos los libros (semilla inicial)
-GET http://localhost:3000/books
+GET http://localhost:8000/books
 
 ### 2. Obtener un libro por ID (existente)
-GET http://localhost:3000/books/1
+GET http://localhost:8000/books/1
 
 ### 3. Obtener un libro por ID (inexistente)
-GET http://localhost:3000/books/999
+GET http://localhost:8000/books/999
 
 ### 4. Crear libro con cuerpo incompleto (error Zod 400)
-POST http://localhost:3000/books
+POST http://localhost:8000/books
 Content-Type: application/json
 
 {
@@ -16,7 +16,7 @@ Content-Type: application/json
 }
 
 ### 5. Crear libro válido sin ISBN (asigna stock: 0 por defecto)
-POST http://localhost:3000/books
+POST http://localhost:8000/books
 Content-Type: application/json
 
 {
@@ -25,7 +25,7 @@ Content-Type: application/json
 }
 
 ### 6. Crear libro válido con ISBN
-POST http://localhost:3000/books
+POST http://localhost:8000/books
 Content-Type: application/json
 
 {
@@ -36,7 +36,7 @@ Content-Type: application/json
 }
 
 ### 7. Intentar crear libro con el mismo ISBN (error 409 ISBN_DUPLICATE)
-POST http://localhost:3000/books
+POST http://localhost:8000/books
 Content-Type: application/json
 
 {
@@ -47,7 +47,7 @@ Content-Type: application/json
 }
 
 ### 8. Actualizar parcialmente un libro (PUT /books/1)
-PUT http://localhost:3000/books/1
+PUT http://localhost:8000/books/1
 Content-Type: application/json
 
 {
@@ -55,13 +55,13 @@ Content-Type: application/json
 }
 
 ### 9. Eliminar un libro (DELETE /books/1 -> 204)
-DELETE http://localhost:3000/books/1
+DELETE http://localhost:8000/books/1
 
 ### 10. Intentar eliminar el mismo libro nuevamente (404 BOOK_NOT_FOUND)
-DELETE http://localhost:3000/books/1
+DELETE http://localhost:8000/books/1
 
 ### 11. Desafío Opcional: Actualizar con stock negativo (error 400 INVALID_STOCK)
-PUT http://localhost:3000/books/2
+PUT http://localhost:8000/books/2
 Content-Type: application/json
 
 {
@@ -69,10 +69,60 @@ Content-Type: application/json
 }
 
 ### 12. Filtrar libros por autor (?autor=Saint-Exupéry)
-GET http://localhost:3000/books?autor=Saint-Exupéry
+GET http://localhost:8000/books?autor=Saint-Exupéry
 
 ### 13. Ordenar libros por título descendente (?sort=-titulo)
-GET http://localhost:3000/books?sort=-titulo
+GET http://localhost:8000/books?sort=-titulo
 
 ### 14. Filtrar por ISBN (?isbn=9789500700122)
-GET http://localhost:3000/books?isbn=9789500700122
+GET http://localhost:8000/books?isbn=9789500700122
+
+### ===================== USERS =====================
+
+### 15. Listar usuarios
+GET http://localhost:8000/users
+
+### 16. Obtener usuario por ID
+GET http://localhost:8000/users/1
+
+### 17. Usuario inexistente (404 USER_NOT_FOUND)
+GET http://localhost:8000/users/999
+
+### 18. Crear usuario válido (rol por defecto: lector)
+POST http://localhost:8000/users
+Content-Type: application/json
+
+{
+  "nombre": "Ana",
+  "email": "ana@mail.com"
+}
+
+### 19. Email duplicado (409 EMAIL_DUPLICATED)
+POST http://localhost:8000/users
+Content-Type: application/json
+
+{
+  "nombre": "Ana Bis",
+  "email": "ana@mail.com"
+}
+
+### 20. Datos inválidos (400 Zod)
+POST http://localhost:8000/users
+Content-Type: application/json
+
+{
+  "nombre": "A",
+  "email": "no-es-email",
+  "rol": "root"
+}
+
+### 21. Actualizar usuario
+PUT http://localhost:8000/users/1
+Content-Type: application/json
+
+{
+  "nombre": "Administrador"
+}
+
+### 22. Eliminar usuario (204)
+DELETE http://localhost:8000/users/2

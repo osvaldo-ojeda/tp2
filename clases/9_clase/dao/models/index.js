@@ -1,4 +1,4 @@
-import sequelize from "../sequelize.js";
+import { sequelize } from "../../connection/index.js";
 import BookModel from "./BookModel.js";
 import UserModel from "./UserModel.js";
 

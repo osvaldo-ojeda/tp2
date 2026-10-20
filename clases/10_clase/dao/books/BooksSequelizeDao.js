@@ -1,4 +1,7 @@
-import { BookModel } from "./models/index.js";
+import { sequelize, BookModel } from "../models/index.js";
+
+// Columnas pedidas explícitamente (evita un SELECT *)
+const BOOK_ATTRIBUTES = ["id", "titulo", "autor", "isbn", "stock"];
 
 /**
  * Adaptador DAO para Libros utilizando Sequelize (SQL).
@@ -8,7 +11,7 @@ class BooksSequelizeDao {
   // Inicialización de la base de datos (creación de tablas y datos semilla)
   async init() {
     // Sincroniza el modelo con la BD. En producción no se usa force: true ni alter: true, se usan migraciones.
-    await BookModel.sync({ alter: true });
+    await sequelize.sync({ alter: true });
 
     // Siembra de datos si la tabla está vacía
     const count = await BookModel.count();
@@ -22,13 +25,14 @@ class BooksSequelizeDao {
 
   // Obtener todos los libros
   async getAll() {
-    // raw: true o get({ plain: true }) asegura que devolvamos objetos planos y no instancias del ORM
-    return await BookModel.findAll({ raw: true });
+    // get({ plain: true }) devuelve objetos planos
+    const books = await BookModel.findAll({ attributes: BOOK_ATTRIBUTES, order: [["id", "ASC"]] });
+    return books.map((b) => b.get({ plain: true }));
   }
 
   // Buscar un libro por ID
   async getById(id) {
-    const book = await BookModel.findByPk(id);
+    const book = await BookModel.findByPk(id, { attributes: BOOK_ATTRIBUTES });
     return book ? book.get({ plain: true }) : null;
   }
 
@@ -42,7 +46,8 @@ class BooksSequelizeDao {
   async save(data) {
     // Ignoramos el id si viene provisto, la BD asignará uno
     const { id: _ignored, ...bookData } = data;
-    const newBook = await BookModel.create(bookData);
+    // isbn en null explícito para devolver la misma forma que el DAO en memoria
+    const newBook = await BookModel.create({ isbn: null, ...bookData });
     return newBook.get({ plain: true });
   }
 
