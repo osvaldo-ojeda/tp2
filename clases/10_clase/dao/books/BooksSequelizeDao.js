@@ -1,6 +1,7 @@
+import { Op } from "sequelize";
 import { sequelize, BookModel } from "../models/index.js";
 
-// Columnas pedidas explícitamente (evita un SELECT *)
+// Columnas pedidas explícitamente (evita un SELECT *); todas las lecturas de este DAO la usan
 const BOOK_ATTRIBUTES = ["id", "titulo", "autor", "isbn", "stock"];
 
 /**
@@ -23,10 +24,24 @@ class BooksSequelizeDao {
     }
   }
 
-  // Obtener todos los libros
-  async getAll() {
+  // Lista libros: los filtros, el orden y la paginación los resuelve la BD (WHERE / ORDER BY / LIMIT),
+  // no se traen todas las filas para filtrar en JS.
+  // filters: { autor, isbn, sort ("titulo" | "-titulo"), page, limit }
+  async getAll({ autor, isbn, sort, page = 1, limit } = {}) {
+    const where = {};
+    if (autor !== undefined) where.autor = { [Op.like]: `%${autor}%` };
+    if (isbn !== undefined) where.isbn = isbn;
+
+    const order = [["id", "ASC"]];
+    if (sort) order.unshift([sort.replace(/^-/, ""), sort.startsWith("-") ? "DESC" : "ASC"]);
+
+    const books = await BookModel.findAll({
+      where,
+      attributes: BOOK_ATTRIBUTES,
+      order,
+      ...(limit && { limit, offset: (page - 1) * limit }),
+    });
     // get({ plain: true }) devuelve objetos planos
-    const books = await BookModel.findAll({ attributes: BOOK_ATTRIBUTES, order: [["id", "ASC"]] });
     return books.map((b) => b.get({ plain: true }));
   }
 
@@ -38,7 +53,7 @@ class BooksSequelizeDao {
 
   // Buscar un libro por ISBN
   async getByIsbn(isbn) {
-    const book = await BookModel.findOne({ where: { isbn } });
+    const book = await BookModel.findOne({ where: { isbn }, attributes: BOOK_ATTRIBUTES });
     return book ? book.get({ plain: true }) : null;
   }
 
@@ -48,12 +63,12 @@ class BooksSequelizeDao {
     const { id: _ignored, ...bookData } = data;
     // isbn en null explícito para devolver la misma forma que el DAO en memoria
     const newBook = await BookModel.create({ isbn: null, ...bookData });
-    return newBook.get({ plain: true });
+    return this.getById(newBook.id);
   }
 
   // Actualizar un libro
   async update(id, changes) {
-    const book = await BookModel.findByPk(id);
+    const book = await BookModel.findByPk(id, { attributes: BOOK_ATTRIBUTES });
     if (!book) return null;
 
     const { id: _ignored, ...allowedChanges } = changes;

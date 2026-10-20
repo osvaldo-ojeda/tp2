@@ -9,11 +9,16 @@ const createLoanSchema = z.object({
   bookId: id("bookId"),
 });
 
+// Filtro reutilizable: true = préstamos sin devolver, false = ya devueltos
+const activosSchema = z
+  .enum(["true", "false"], { error: "activos debe ser 'true' o 'false'" })
+  .transform((v) => v === "true");
+
 // Esquema para req.query en GET /loans (filtros opcionales)
 const queryLoansSchema = z.object({
   userId: z.coerce.number().int().positive().optional(),
   bookId: z.coerce.number().int().positive().optional(),
-  activos: z.enum(["true", "false"], { error: "activos debe ser 'true' o 'false'" }).transform((v) => v === "true").optional(),
+  activos: activosSchema.optional(),
 });
 
 // Esquema para validar los parámetros de la URL (ej: /loans/:id)
@@ -21,4 +26,4 @@ const loanIdParamSchema = z.object({
   id: z.coerce.number().int("El ID debe ser un número entero").positive("El ID debe ser un número positivo"),
 });
 
-export { createLoanSchema, queryLoansSchema, loanIdParamSchema };
+export { activosSchema, createLoanSchema, queryLoansSchema, loanIdParamSchema };

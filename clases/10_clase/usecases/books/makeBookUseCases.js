@@ -11,8 +11,8 @@ import deleteBook from "./deleteBook.js";
  */
 function makeBookUseCases(dao, loansDao, events) {
   return {
-    getBooks: (filters) => getBooks(filters, dao),
-    getBookById: (id) => getBookById(id, dao),
+    getBooks: (filters) => getBooks(filters, dao, loansDao),
+    getBookById: (id, options) => getBookById(id, dao, loansDao, options),
     createBook: (data) => createBook(data, dao, events),
     updateBook: (id, changes) => updateBook(id, changes, dao, events),
     deleteBook: (id) => deleteBook(id, dao, loansDao),

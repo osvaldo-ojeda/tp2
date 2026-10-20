@@ -10,8 +10,8 @@ import deleteUser from "./deleteUser.js";
  */
 function makeUserUseCases(dao, loansDao, events) {
   return {
-    getUsers: () => getUsers(dao),
-    getUserById: (id) => getUserById(id, dao),
+    getUsers: (filters) => getUsers(filters, dao, loansDao),
+    getUserById: (id, options) => getUserById(id, dao, loansDao, options),
     createUser: (data) => createUser(data, dao, events),
     updateUser: (id, changes) => updateUser(id, changes, dao),
     deleteUser: (id) => deleteUser(id, dao, loansDao),

@@ -15,6 +15,7 @@ const INCLUDE = [
  */
 class LoansSequelizeDao {
   // filters: { userId, bookId, activos } (activos: true = sin devolver, false = ya devueltos)
+  // userId y bookId aceptan un número o un arreglo de números (Sequelize lo traduce a IN).
   async getAll({ userId, bookId, activos } = {}) {
     const where = {};
     if (userId !== undefined) where.userId = userId;

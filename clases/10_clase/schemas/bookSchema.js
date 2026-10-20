@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { activosSchema } from "./loanSchema.js";
 
 // Definición de campos reutilizables
 const fields = {
@@ -40,9 +41,21 @@ const queryBooksSchema = z.object({
   autor: z.string().optional(),
   author: z.string().optional(),
   isbn: z.string().optional(),
-  sort: z.string().optional(),
+  // Solo columnas reales: el DAO las usa tal cual en el ORDER BY
+  sort: z
+    .string()
+    .regex(/^-?(id|titulo|autor|isbn|stock)$/, "sort debe ser id, titulo, autor, isbn o stock (con '-' para descendente)")
+    .optional(),
+  incluir: z.enum(["usuarios"], { error: "incluir solo admite 'usuarios'" }).optional(),
+  activos: activosSchema.optional(), // solo aplica junto con incluir=usuarios
   page: z.coerce.number().int("La página debe ser un entero").positive("La página debe ser mayor a 0").optional(),
   limit: z.coerce.number().int("El límite debe ser un entero").positive("El límite debe ser mayor a 0").max(100, "El límite máximo es 100").optional(),
+});
+
+// Esquema para req.query en GET /books/:id
+const queryBookByIdSchema = z.object({
+  incluir: z.enum(["usuarios"], { error: "incluir solo admite 'usuarios'" }).optional(),
+  activos: activosSchema.optional(),
 });
 
 // Esquema para validar los parámetros de la URL (ej: /books/:id)
@@ -55,5 +68,6 @@ export {
   updateBookSchema,
   paginationSchema,
   queryBooksSchema,
+  queryBookByIdSchema,
   bookIdParamSchema,
 };

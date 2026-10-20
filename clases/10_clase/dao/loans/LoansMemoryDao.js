@@ -29,11 +29,13 @@ class LoansMemoryDao {
   }
 
   // filters: { userId, bookId, activos } (activos: true = sin devolver, false = ya devueltos)
+  // userId y bookId aceptan un número o un arreglo de números (equivale a IN).
   async getAll({ userId, bookId, activos } = {}) {
+    const matches = (filter, value) => filter === undefined || [filter].flat().includes(value);
     const result = this.#loans.filter(
       (l) =>
-        (userId === undefined || l.userId === userId) &&
-        (bookId === undefined || l.bookId === bookId) &&
+        matches(userId, l.userId) &&
+        matches(bookId, l.bookId) &&
         (activos === undefined || (l.fechaDevolucion === null) === activos)
     );
     return Promise.all(result.map((l) => this.#withRelations(l)));
