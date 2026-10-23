@@ -1,0 +1,614 @@
+### ============ CLASE 11: AUTENTICACIÓN (JWT + bcrypt) ============
+### Las peticiones de abajo usan REST Client: `# @name` guarda la respuesta y `{{nombre.response.body.campo}}` la reutiliza.
+### Ejecutá primero el login del admin (#A1) para que el resto tenga token. Ver ADMIN_EMAIL / ADMIN_PASSWORD en .env.
+
+### A1. Login del administrador (devuelve { token, user })
+# @name loginAdmin
+POST http://localhost:8000/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@biblioteca.com",
+  "password": "Admin1234"
+}
+
+###
+@adminToken = {{loginAdmin.response.body.token}}
+
+### 1. Obtener todos los libros (semilla inicial)
+GET http://localhost:8000/books
+
+### 2. Obtener un libro por ID (existente)
+GET http://localhost:8000/books/1
+
+### 3. Obtener un libro por ID (inexistente)
+GET http://localhost:8000/books/999
+
+### 4. Crear libro con cuerpo incompleto (error Zod 400)
+POST http://localhost:8000/books
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "titulo": "Libro Incompleto"
+}
+
+### 5. Crear libro válido sin ISBN (asigna stock: 0 por defecto)
+POST http://localhost:8000/books
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "titulo": "Rayuela",
+  "autor": "Julio Cortázar"
+}
+
+### 6. Crear libro válido con ISBN
+POST http://localhost:8000/books
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "titulo": "Ficciones",
+  "autor": "Jorge Luis Borges",
+  "isbn": "9789500700122",
+  "stock": 5
+}
+
+### 7. Intentar crear libro con el mismo ISBN (error 409 ISBN_DUPLICATE)
+POST http://localhost:8000/books
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "titulo": "Ficciones Edición Especial",
+  "autor": "Jorge Luis Borges",
+  "isbn": "9789500700122",
+  "stock": 2
+}
+
+### 8. Actualizar parcialmente un libro (PUT /books/1)
+PUT http://localhost:8000/books/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "stock": 10
+}
+
+### 9. Eliminar un libro (DELETE /books/1 -> 204)
+DELETE http://localhost:8000/books/1
+Authorization: Bearer {{adminToken}}
+
+### 10. Intentar eliminar el mismo libro nuevamente (404 BOOK_NOT_FOUND)
+DELETE http://localhost:8000/books/1
+Authorization: Bearer {{adminToken}}
+
+### 11. Desafío Opcional: Actualizar con stock negativo (error 400 INVALID_STOCK)
+PUT http://localhost:8000/books/2
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "stock": -5
+}
+
+### 12. Filtrar libros por autor (?autor=Saint-Exupéry)
+GET http://localhost:8000/books?autor=Saint-Exupéry
+
+### 13. Ordenar libros por título descendente (?sort=-titulo)
+GET http://localhost:8000/books?sort=-titulo
+
+### 14. Filtrar por ISBN (?isbn=9789500700122)
+GET http://localhost:8000/books?isbn=9789500700122
+
+### ===================== USERS =====================
+
+### 15. Listar usuarios
+GET http://localhost:8000/users
+Authorization: Bearer {{adminToken}}
+
+### 16. Obtener usuario por ID
+GET http://localhost:8000/users/1
+Authorization: Bearer {{adminToken}}
+
+### 17. Usuario inexistente (404 USER_NOT_FOUND)
+GET http://localhost:8000/users/999
+Authorization: Bearer {{adminToken}}
+
+### 18. Crear usuario válido (rol por defecto: lector)
+POST http://localhost:8000/users
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "nombre": "Ana",
+  "email": "ana@mail.com",
+  "password": "Clave12345"
+}
+
+### 19. Email duplicado (409 EMAIL_DUPLICATED)
+POST http://localhost:8000/users
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "nombre": "Ana Bis",
+  "email": "ana@mail.com",
+  "password": "Clave12345"
+}
+
+### 20. Datos inválidos (400 Zod)
+POST http://localhost:8000/users
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "nombre": "A",
+  "email": "no-es-email",
+  "password": "Clave12345",
+  "rol": "root"
+}
+
+### 21. Actualizar usuario
+PUT http://localhost:8000/users/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "nombre": "Administrador"
+}
+
+### 22. Eliminar usuario (204)
+DELETE http://localhost:8000/users/2
+Authorization: Bearer {{adminToken}}
+
+
+### ============ CLASE 10: EVENTOS / ALERTAS DE STOCK BAJO (umbral por defecto: 2) ============
+
+### 23. Stock MAYOR al umbral -> NO notifica
+PUT http://localhost:8000/books/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "stock": 10
+}
+
+### 24. Stock IGUAL al umbral -> notifica
+PUT http://localhost:8000/books/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "stock": 2
+}
+
+### 25. Stock MENOR al umbral -> notifica
+PUT http://localhost:8000/books/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "stock": 0
+}
+
+### 26. Solo cambia el título con stock ya bajo -> NO notifica
+PUT http://localhost:8000/books/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "titulo": "El principito (edición nueva)"
+}
+
+### 27. Crear libro con stock bajo -> notifica
+POST http://localhost:8000/books
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "titulo": "Libro con poco stock",
+  "autor": "Autor Test",
+  "stock": 1
+}
+
+### 28. Crear libro con stock alto -> NO notifica
+POST http://localhost:8000/books
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "titulo": "Libro con mucho stock",
+  "autor": "Autor Test",
+  "stock": 20
+}
+
+### 29. Libro inexistente -> 404 y NO notifica
+PUT http://localhost:8000/books/999
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "stock": 0
+}
+
+### ============ CLASE 10: PRÉSTAMOS (relación N a N usuarios <-> libros) ============
+### Un préstamo descuenta 1 de stock; devolverlo lo repone. Si el stock queda <= umbral, se emite book.lowStock.
+
+### 30. Prestar el libro 1 al usuario 1 (201, stock -1)
+POST http://localhost:8000/loans
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "bookId": 1
+}
+
+### 31. Mismo usuario y mismo libro sin devolver (409 ALREADY_LOANED)
+POST http://localhost:8000/loans
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "bookId": 1
+}
+
+### 32. Otro usuario con el mismo libro (201, mientras haya stock)
+POST http://localhost:8000/loans
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "bookId": 1
+}
+
+### 33. Sin stock disponible (409 OUT_OF_STOCK): repetir hasta agotar el stock del libro
+POST http://localhost:8000/loans
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "userId": 3,
+  "bookId": 1
+}
+
+### 34. Usuario inexistente (404 USER_NOT_FOUND)
+POST http://localhost:8000/loans
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "userId": 999,
+  "bookId": 1
+}
+
+### 35. Libro inexistente (404 BOOK_NOT_FOUND)
+POST http://localhost:8000/loans
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "bookId": 999
+}
+
+### 36. Datos inválidos (400 Zod)
+POST http://localhost:8000/loans
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "userId": "uno"
+}
+
+### 37. Listar todos los préstamos (incluye usuario y libro)
+GET http://localhost:8000/loans
+Authorization: Bearer {{adminToken}}
+
+### 38. Libros que tiene un usuario (préstamos sin devolver)
+GET http://localhost:8000/loans?userId=1&activos=true
+Authorization: Bearer {{adminToken}}
+
+### 39. Quién tiene un libro
+GET http://localhost:8000/loans?bookId=1&activos=true
+Authorization: Bearer {{adminToken}}
+
+### 40. Historial de préstamos ya devueltos
+GET http://localhost:8000/loans?activos=false
+Authorization: Bearer {{adminToken}}
+
+### 41. Obtener un préstamo por ID
+GET http://localhost:8000/loans/1
+Authorization: Bearer {{adminToken}}
+
+### 42. Devolver un libro (200, stock +1)
+PUT http://localhost:8000/loans/1/return
+Authorization: Bearer {{adminToken}}
+
+### 43. Devolver de nuevo (409 ALREADY_RETURNED)
+PUT http://localhost:8000/loans/1/return
+Authorization: Bearer {{adminToken}}
+
+### 44. Devolver préstamo inexistente (404 LOAN_NOT_FOUND)
+PUT http://localhost:8000/loans/999/return
+Authorization: Bearer {{adminToken}}
+
+### 45. Eliminar usuario con préstamos (409 USER_HAS_LOANS)
+DELETE http://localhost:8000/users/1
+Authorization: Bearer {{adminToken}}
+
+### 46. Eliminar libro con préstamos (409 BOOK_HAS_LOANS)
+DELETE http://localhost:8000/books/1
+Authorization: Bearer {{adminToken}}
+
+### ============ CLASE 10 (opcional): EVENTO user.created ============
+
+### 47. Crear usuario -> notificación de bienvenida
+POST http://localhost:8000/users
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "nombre": "Lucía",
+  "email": "lucia@biblioteca.com",
+  "password": "Clave12345"
+}
+
+### 48. Email duplicado (409) -> NO emite user.created
+POST http://localhost:8000/users
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "nombre": "Lucía Bis",
+  "email": "lucia@biblioteca.com",
+  "password": "Clave12345"
+}
+
+### ============ CLASE 10: CONSULTAS N a N (libros con sus usuarios / usuarios con sus libros) ============
+### Los filtros, el orden y la paginación los resuelve la BD (WHERE / ORDER BY / LIMIT), no un findAll + filter en JS.
+### Preparación: crear un par de usuarios (#18) y prestar el libro 1 a cada uno (#30 y #32); devolver uno (#42) para ver
+### la diferencia entre historial y préstamos activos. En memoria el usuario 1 es el Admin sembrado; en Sequelize no hay semilla de usuarios.
+
+### 49. Libros con los usuarios que los tienen (historial completo)
+GET http://localhost:8000/books?incluir=usuarios
+
+### 50. Libros con sus usuarios, solo préstamos sin devolver
+GET http://localhost:8000/books?incluir=usuarios&activos=true
+
+### 51. Un libro con sus usuarios
+GET http://localhost:8000/books/1?incluir=usuarios&activos=true
+
+### 52. Filtros combinados: autor + orden + paginación + usuarios
+GET http://localhost:8000/books?autor=saint&sort=-titulo&page=1&limit=5&incluir=usuarios
+
+### 53. Filtro inválido (400: sort fuera de las columnas permitidas)
+GET http://localhost:8000/books?sort=precio
+
+### 54. Usuarios con los libros que tienen (historial completo)
+GET http://localhost:8000/users?incluir=libros
+Authorization: Bearer {{adminToken}}
+
+### 55. Usuarios con sus libros, solo préstamos sin devolver
+GET http://localhost:8000/users?incluir=libros&activos=true
+Authorization: Bearer {{adminToken}}
+
+### 56. Un usuario con sus libros
+GET http://localhost:8000/users/1?incluir=libros&activos=true
+Authorization: Bearer {{adminToken}}
+
+### 57. Filtrar usuarios por rol + libros que tienen
+GET http://localhost:8000/users?rol=lector&incluir=libros
+Authorization: Bearer {{adminToken}}
+
+### 58. Filtrar usuarios por nombre (parcial) y paginar
+GET http://localhost:8000/users?nombre=an&page=1&limit=10
+Authorization: Bearer {{adminToken}}
+
+### 59. Valor inválido (400: incluir solo admite 'libros')
+GET http://localhost:8000/users?incluir=autores
+Authorization: Bearer {{adminToken}}
+
+### ============ CLASE 11: REGISTRO, LOGIN Y PERMISOS ============
+
+### A2. Registrar un usuario (siempre queda con rol "lector", aunque mande "rol": "admin")
+POST http://localhost:8000/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Carla",
+  "email": "carla@mail.com",
+  "password": "Carla12345",
+  "rol": "admin"
+}
+
+### A3. Registro con contraseña corta (400 Zod)
+POST http://localhost:8000/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Carla",
+  "email": "carla2@mail.com",
+  "password": "corta"
+}
+
+### A4. Email ya registrado (409 EMAIL_DUPLICATED)
+POST http://localhost:8000/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Carla Bis",
+  "email": "carla@mail.com",
+  "password": "Carla12345"
+}
+
+### A5. Login de la lectora (guarda su token)
+# @name loginReader
+POST http://localhost:8000/auth/login
+Content-Type: application/json
+
+{
+  "email": "carla@mail.com",
+  "password": "Carla12345"
+}
+
+###
+@readerToken = {{loginReader.response.body.token}}
+
+### A6. Contraseña incorrecta (401 INVALID_CREDENTIALS)
+POST http://localhost:8000/auth/login
+Content-Type: application/json
+
+{
+  "email": "carla@mail.com",
+  "password": "incorrecta"
+}
+
+### A7. Email inexistente (401 INVALID_CREDENTIALS, el MISMO error: no revela qué emails existen)
+POST http://localhost:8000/auth/login
+Content-Type: application/json
+
+{
+  "email": "nadie@mail.com",
+  "password": "Cualquiera123"
+}
+
+### A8. Crear libro SIN token (401 TOKEN_MISSING)
+POST http://localhost:8000/books
+Content-Type: application/json
+
+{
+  "titulo": "Sin token",
+  "autor": "Anónimo"
+}
+
+### A9. Token inventado o alterado (401 TOKEN_INVALID)
+POST http://localhost:8000/books
+Authorization: Bearer abc.def.ghi
+Content-Type: application/json
+
+{
+  "titulo": "Token falso",
+  "autor": "Anónimo"
+}
+
+### A10. Crear libro como lectora (403 FORBIDDEN: autenticada pero sin permiso)
+POST http://localhost:8000/books
+Authorization: Bearer {{readerToken}}
+Content-Type: application/json
+
+{
+  "titulo": "No debería poder",
+  "autor": "Lectora"
+}
+
+### A11. Crear libro como admin (201)
+POST http://localhost:8000/books
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "titulo": "Libro protegido",
+  "autor": "Admin",
+  "stock": 10
+}
+
+### A12. Listar usuarios como lectora (403): la gestión de usuarios es solo del admin
+GET http://localhost:8000/users
+Authorization: Bearer {{readerToken}}
+
+### A13. Listar usuarios como admin (200, sin passwordHash en la respuesta)
+GET http://localhost:8000/users
+Authorization: Bearer {{adminToken}}
+
+### A14. La lectora pide un libro: el préstamo es a su nombre (201, no manda userId)
+POST http://localhost:8000/loans
+Authorization: Bearer {{readerToken}}
+Content-Type: application/json
+
+{
+  "bookId": 2
+}
+
+### A15. La lectora intenta pedir un libro a nombre de otro (403)
+POST http://localhost:8000/loans
+Authorization: Bearer {{readerToken}}
+Content-Type: application/json
+
+{
+  "bookId": 2,
+  "userId": 1
+}
+
+### A16. La lectora lista préstamos: solo ve los suyos
+GET http://localhost:8000/loans
+Authorization: Bearer {{readerToken}}
+
+### A17. Mi perfil
+GET http://localhost:8000/auth/me
+Authorization: Bearer {{readerToken}}
+
+### A18. Mi perfil con los libros que tengo prestados (relación N a N)
+GET http://localhost:8000/auth/me?incluir=libros&activos=true
+Authorization: Bearer {{readerToken}}
+
+### A19. Perfil sin token (401)
+GET http://localhost:8000/auth/me
+
+### A20. Los GET de libros siguen siendo públicos
+GET http://localhost:8000/books?incluir=usuarios&activos=true
+
+### ============ CLASE 11 (opcional): CAMBIO DE CONTRASEÑA Y LÍMITE DE INTENTOS ============
+
+### A21. Cambiar mi contraseña (204). Después de ejecutarlo, el login con la contraseña vieja falla
+PUT http://localhost:8000/auth/password
+Authorization: Bearer {{readerToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "Carla12345",
+  "newPassword": "CarlaNueva456"
+}
+
+### A22. Contraseña actual incorrecta (401 INVALID_CREDENTIALS)
+PUT http://localhost:8000/auth/password
+Authorization: Bearer {{readerToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "no-es-esta",
+  "newPassword": "OtraNueva789"
+}
+
+### A23. Nueva contraseña demasiado corta (400 Zod)
+PUT http://localhost:8000/auth/password
+Authorization: Bearer {{readerToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "CarlaNueva456",
+  "newPassword": "corta"
+}
+
+### A24. Sin token (401)
+PUT http://localhost:8000/auth/password
+Content-Type: application/json
+
+{
+  "currentPassword": "x",
+  "newPassword": "CarlaNueva456"
+}
+
+### A25. Límite de intentos: ejecutá esta petición 6 veces seguidas. Al sexto intento fallido responde 429 TOO_MANY_ATTEMPTS
+### (después de un minuto se libera; los logins exitosos no cuentan)
+POST http://localhost:8000/auth/login
+Content-Type: application/json
+
+{
+  "email": "carla@mail.com",
+  "password": "incorrecta"
+}
