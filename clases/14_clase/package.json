@@ -1,0 +1,47 @@
+{
+  "name": "biblioteca-testing",
+  "version": "1.0.0",
+  "description": "API REST de Biblioteca — Testing de casos de uso con Vitest, sin infraestructura (Clase 14)",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --env-file=.env index.js",
+    "dev": "node --env-file=.env --watch index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "express",
+    "rest-api",
+    "node",
+    "zod",
+    "dao",
+    "sequelize",
+    "sqlite",
+    "ioc",
+    "jwt",
+    "bcrypt",
+    "auth",
+    "fetch",
+    "csv",
+    "open-library",
+    "vitest",
+    "testing"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.1",
+    "jsonwebtoken": "^9.0.3",
+    "sequelize": "^6.37.5",
+    "sqlite3": "^5.1.7",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^5.1.0",
+    "vitest": "^5.1.0"
+  }
+}
